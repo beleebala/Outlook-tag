@@ -10,11 +10,11 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "types": ["office-js", "vitest/globals", "@testing-library/jest-dom"]
+    "types": ["node", "office-js", "vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src", "scripts", "vitest.setup.ts"],
   "references": []

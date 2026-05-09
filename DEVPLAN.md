@@ -5,6 +5,10 @@
 - Scaffolded the Office Web Add-in project structure.
 - Added a single manifest with `ASSET_URL` replacement.
 - Added an Outlook ribbon button named `Open Tag Panel` for launching the task pane.
+- Updated the GitHub Pages workflow and direct dependency set to current stable versions.
+- Updated TypeScript configuration for the latest compiler line.
+- Added ambient type declarations required by the updated toolchain.
+- Set a project-specific webpack bundle budget for the Fluent UI task pane.
 - Implemented React task pane views:
   - Tag Email
   - Tag Manager

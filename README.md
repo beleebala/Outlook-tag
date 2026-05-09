@@ -16,7 +16,7 @@ Outlook Tag is an Office Web Add-in for applying and managing Outlook category t
 ## Requirements
 
 - Windows PowerShell or Windows Terminal for local Outlook development.
-- Node.js 20 LTS or newer on Windows.
+- Node.js 24 LTS or newer on Windows.
 - Outlook client/account with Mailbox requirement set 1.8.
 - `ReadWriteMailbox` manifest permission, already declared in `manifest.xml`.
 

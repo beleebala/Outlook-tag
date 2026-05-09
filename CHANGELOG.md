@@ -4,6 +4,11 @@ All notable changes to this project are documented here.
 
 ## 0.1.0 - 2026-05-09
 
+- Updated GitHub Pages deployment to current stable GitHub Actions and Node 24.
+- Updated direct npm dependencies to current stable versions.
+- Updated TypeScript module resolution for TypeScript 6 compatibility.
+- Added ambient type coverage for Node-based tests and CSS imports.
+- Set an explicit webpack performance budget for the Office task pane bundle.
 - Renamed the Outlook ribbon command to **Open Tag Panel** so the task pane entry point is explicit.
 - Added Office Web Add-in scaffold with React, TypeScript, Fluent UI, webpack, and a Mailbox manifest.
 - Added task pane flows for tagging an email, managing categories, and editing tag rules.

@@ -68,6 +68,10 @@ module.exports = async (_env, argv) => {
         ]
       })
     ],
+    performance: {
+      maxAssetSize: 512000,
+      maxEntrypointSize: 512000
+    },
     devServer: {
       allowedHosts: "all",
       headers: {
