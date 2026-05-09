@@ -85,10 +85,10 @@
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="GroupLabel" DefaultValue="Outlook Tag"/>
-        <bt:String id="TaskpaneButton.Label" DefaultValue="Tag Email"/>
+        <bt:String id="TaskpaneButton.Label" DefaultValue="Open Tag Panel"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open Outlook Tag to apply and manage category tags."/>
+        <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Open the Outlook Tag panel to apply and manage category tags."/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

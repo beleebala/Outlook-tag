@@ -4,6 +4,7 @@
 
 - Scaffolded the Office Web Add-in project structure.
 - Added a single manifest with `ASSET_URL` replacement.
+- Added an Outlook ribbon button named `Open Tag Panel` for launching the task pane.
 - Implemented React task pane views:
   - Tag Email
   - Tag Manager

@@ -4,6 +4,7 @@ All notable changes to this project are documented here.
 
 ## 0.1.0 - 2026-05-09
 
+- Renamed the Outlook ribbon command to **Open Tag Panel** so the task pane entry point is explicit.
 - Added Office Web Add-in scaffold with React, TypeScript, Fluent UI, webpack, and a Mailbox manifest.
 - Added task pane flows for tagging an email, managing categories, and editing tag rules.
 - Added Office.js promise wrappers for selected-item categories, master categories, and Roaming Settings.

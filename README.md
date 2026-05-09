@@ -4,6 +4,7 @@ Outlook Tag is an Office Web Add-in for applying and managing Outlook category t
 
 ## Current Scope
 
+- Open the tag panel from an Outlook ribbon button.
 - Apply existing Outlook categories to the selected email.
 - Remove categories from the selected email.
 - Create and delete master categories.
@@ -132,7 +133,7 @@ Presentation components should not call Office.js directly. Add Office integrati
 
 1. Deploy to GitHub Pages or run `npm run build` with the production `ASSET_URL`.
 2. Sideload the generated production manifest in Outlook.
-3. Select an email and open the "Tag Email" task pane.
+3. Select an email and choose **Open Tag Panel** from the Outlook ribbon.
 4. Apply an existing tag and confirm it appears on the message.
 5. Remove a tag chip and confirm it is removed from the message.
 6. Create a tag in Tag Manager and confirm it appears in autocomplete.
