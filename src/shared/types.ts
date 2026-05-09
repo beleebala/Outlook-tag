@@ -12,6 +12,11 @@ export interface TagRulesStore {
   tagRules: Record<string, TagRule>;
 }
 
+export interface TagPreferences {
+  favoriteTags: string[];
+  recentTags: string[];
+}
+
 export interface RuleExecutionPlan {
   add: string[];
   remove: string[];

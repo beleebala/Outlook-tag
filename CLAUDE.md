@@ -25,3 +25,10 @@ $env:ASSET_URL='https://beleebala.github.io/Outlook-tag'; npm run build
 - `src/shared/rules.ts` owns deterministic rule planning and should stay testable without Office.
 - `src/taskpane/components/` contains React views for tagging, managing categories, and editing tag rules.
 - Category rules are stored in Office.js Roaming Settings under the `tagRules` key.
+
+## Design System
+
+Always read `DESIGN.md` before making any visual or UI decisions.
+All font choices, colors, spacing, component density, and aesthetic direction are defined there.
+Do not deviate without explicit user approval.
+In QA mode, flag any code that does not match `DESIGN.md`.

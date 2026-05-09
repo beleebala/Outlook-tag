@@ -4,6 +4,10 @@ All notable changes to this project are documented here.
 
 ## 0.1.0 - 2026-05-09
 
+- Added quick tag groups for favorites, recent tags, and the first available mailbox categories.
+- Added favorite and recent tag persistence through Office Roaming Settings.
+- Added preference normalization tests for favorite/recent tag behavior.
+- Added an approved design system for the Outlook task-pane UI.
 - Updated GitHub Pages deployment to current stable GitHub Actions and Node 24.
 - Updated direct npm dependencies to current stable versions.
 - Updated TypeScript module resolution for TypeScript 6 compatibility.

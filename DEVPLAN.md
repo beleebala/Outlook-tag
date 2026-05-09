@@ -15,7 +15,10 @@
   - Tag Rules
 - Isolated Office.js APIs in `src/shared/officeApi.ts`.
 - Added rule planning and application logic.
+- Added quick tag buttons with favorite and recent tag persistence.
 - Added first-pass tests for deterministic rules and manifest validation.
+- Added preference tests for favorite and recent tag normalization.
+- Added `DESIGN.md` as the source of truth for task-pane UI decisions.
 
 ## Next Engineering Tasks
 
@@ -29,10 +32,11 @@
    - `$env:ASSET_URL='https://localhost:4000'; npm start`
 2. Verify the exact Office.js category API signatures against the generated TypeScript types after install.
 3. Add selected-item change handling with `Office.EventType.ItemChanged` where supported; until then, Refresh is exposed before mutations.
-4. Add component tests for the create/delete/rules UI states after the first build passes.
-5. Replace SVG placeholder icons with PNG assets if any Outlook client rejects SVG icon URLs.
-6. Manually verify the startup error inside Outlook versus a direct browser load.
-7. Verify Outlook WebView trusts the generated Office Add-in dev certificate on the development machine.
+4. Add sender/subject-based suggested tags after quick tags are manually verified.
+5. Add component tests for the create/delete/rules/favorites UI states after the first build passes.
+6. Replace SVG placeholder icons with PNG assets if any Outlook client rejects SVG icon URLs.
+7. Manually verify the startup error inside Outlook versus a direct browser load.
+8. Verify Outlook WebView trusts the generated Office Add-in dev certificate on the development machine.
 
 ## GitHub Pages Path
 

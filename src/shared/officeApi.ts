@@ -1,7 +1,9 @@
 import { emptyRulesStore } from "./rules";
-import { Category, OfficeApiError, TagRulesStore } from "./types";
+import { Category, OfficeApiError, TagPreferences, TagRulesStore } from "./types";
+import { emptyTagPreferences } from "./tagPreferences";
 
 const TAG_RULES_KEY = "tagRules";
+const TAG_PREFS_KEY = "tagPreferences";
 
 type AsyncResult<T> = Office.AsyncResult<T>;
 
@@ -152,5 +154,21 @@ export function getRoamingSettings(): TagRulesStore {
 export async function saveRoamingSettings(data: TagRulesStore): Promise<void> {
   const settings = getOffice().context.roamingSettings;
   settings.set(TAG_RULES_KEY, data.tagRules);
+  await asPromise<void>((callback) => settings.saveAsync(callback));
+}
+
+export function getTagPreferences(): TagPreferences {
+  const rawPreferences = getOffice().context.roamingSettings.get(TAG_PREFS_KEY);
+
+  if (!rawPreferences || typeof rawPreferences !== "object") {
+    return emptyTagPreferences();
+  }
+
+  return rawPreferences as TagPreferences;
+}
+
+export async function saveTagPreferences(data: TagPreferences): Promise<void> {
+  const settings = getOffice().context.roamingSettings;
+  settings.set(TAG_PREFS_KEY, data);
   await asPromise<void>((callback) => settings.saveAsync(callback));
 }
