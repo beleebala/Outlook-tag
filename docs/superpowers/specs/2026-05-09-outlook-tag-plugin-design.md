@@ -22,12 +22,11 @@ SimplyTag is the leading Outlook tagging tool, but it only works on classic Outl
 | Distribution | Sideloading via `manifest.xml` |
 | Hosting | GitHub Pages (`beleebala.github.io/Outlook-tag`) |
 | Target | Personal / internal team use |
+| Dev environment | Windows PowerShell (not WSL2 — see Dev Environment section) |
 
 ---
 
 ## Platform Compatibility
-
-Works on all of:
 
 | Platform | Supported |
 |---|---|
@@ -36,7 +35,17 @@ Works on all of:
 | Classic Outlook for Windows (Office 2021 / M365) | ✓ |
 | Outlook for Mac | ✓ |
 
-**Requirement:** Microsoft 365 or Exchange account — needed for the categories sync API (Mailbox requirement set 1.8).
+**Account types:** Designed for both Microsoft 365 (work/school) and personal Outlook.com accounts. The categories API (Mailbox requirement set 1.8) is supported on both. Sideloading works on both via Outlook Settings → Add-ins → My add-ins → Custom add-ins.
+
+---
+
+## Dev Environment
+
+**All development must be done in Windows PowerShell (or Windows Terminal), not WSL2.**
+
+The Yeoman dev server runs on `localhost:3000`. Outlook runs on Windows. If the dev server is started inside WSL2, Windows and Outlook see a different `localhost` and cannot reach the add-in. Running everything natively on Windows avoids this entirely.
+
+Node.js, npm, and Yeoman must be installed on the Windows side, not inside WSL2.
 
 ---
 
@@ -49,21 +58,21 @@ New Outlook
         ├── View A: Tag an Email
         │   ├── Reads existing tags on selected email (on open)
         │   ├── Displays tags as removable chips
-        │   ├── Autocomplete input to add existing tags
+        │   ├── Autocomplete input to apply existing tags
         │   └── [Manage Tags] → View B
         ├── View B: Tag Manager
         │   ├── Lists all Outlook categories
-        │   ├── Create / delete tags
+        │   ├── Create / delete tags  (no rename — see Tag Naming below)
         │   └── [Edit] per tag → View C
         └── View C: Edit Tag
-            ├── Name + color
-            └── Actions: move-to-folder · also-apply · remove-conflicting · do-not-auto-apply flag
+            ├── Color only (name is read-only after creation)
+            └── Actions: also-apply · remove-conflicting
                 │
-                ▼  stored in Office.js Roaming Settings (syncs via Exchange)
+                ▼  stored in Office.js Roaming Settings (syncs via Exchange/M365)
                 │
                 ▼  executed immediately when tag is applied to an email
 
-    officeApi.ts  (wraps all Office.js calls)
+    officeApi.ts  (wraps all Office.js calls — no Graph API in v1)
 ```
 
 ---
@@ -72,8 +81,7 @@ New Outlook
 
 ```
 Outlook-tag/
-├── manifest.xml              ← production (GitHub Pages URL)
-├── manifest.dev.xml          ← development (localhost:3000)
+├── manifest.xml              ← one manifest; URL injected at build time via env var
 ├── src/
 │   └── taskpane/
 │       ├── taskpane.html     ← entry HTML
@@ -83,12 +91,14 @@ Outlook-tag/
 │           ├── TagList.tsx       ← chips of current email's tags
 │           ├── TagInput.tsx      ← autocomplete input to apply tags
 │           ├── TagManager.tsx    ← list all tags; create / delete
-│           └── EditTag.tsx       ← per-tag name, color, action rules
+│           └── EditTag.tsx       ← per-tag color + action rules
 ├── src/shared/
 │   └── officeApi.ts          ← all Office.js API calls in one place
-├── webpack.config.js
+├── webpack.config.js         ← injects ASSET_URL env var into manifest + HTML
 └── package.json
 ```
+
+`ASSET_URL=https://localhost:3000 npm start` for dev; `ASSET_URL=https://beleebala.github.io/Outlook-tag npm run build` for production. One manifest file, two URL values.
 
 ---
 
@@ -109,23 +119,33 @@ Opens when the user clicks "Tag Email" in the Outlook ribbon with an email selec
 ### View B — Tag Manager
 
 - Lists all Outlook categories (name + color swatch)
-- `[Edit]` per tag → View C
+- `[Edit]` per tag → View C (color change + action rules only)
 - `[🗑]` per tag → confirmation dialog then delete
 - `[+ New Tag]` → inline form: name input + color picker (Outlook's 25 standard colors)
 - `[←]` → back to View A
 
 ### View C — Edit Tag
 
-- Name field (pre-filled)
-- Color picker (pre-filled, Outlook's 25 standard colors)
+- **Name: read-only** (displayed but not editable — see Tag Naming below)
+- Color picker (Outlook's 25 standard colors)
 - **Actions** (run automatically when this tag is applied to an email):
-  - ☐ Move email to folder — folder dropdown populated from the user's mailbox
   - ☐ Also apply tags — multi-select from existing tags
   - ☐ Remove conflicting tags — multi-select from existing tags
-  - ☐ Do not auto-apply to incoming email *(stores flag for future auto-tagging feature; no effect in v1)*
-- `[Save]` → write rules to Roaming Settings; update Outlook category if name/color changed
+- `[Save]` → write rules to Roaming Settings; update Outlook category color if changed
 - `[Cancel]` → discard changes
 - `[←]` → back to View B
+
+---
+
+## Tag Naming — Why Names Are Read-Only After Creation
+
+Outlook stores category names as plain strings on each email. If you rename a master category, previously tagged emails keep the old string — they become orphaned (the category color disappears and Outlook shows it as an unknown category). Rather than build a migration that touches potentially hundreds of emails, names are locked after creation. To rename: delete the old tag and create a new one with the desired name.
+
+---
+
+## v2 Scope (not in this build)
+
+**Move email to folder** requires calling Microsoft Graph (`POST /me/messages/{id}/move`), which needs an Azure app registration, OAuth 2.0 consent, and `Mail.ReadWrite` Graph permission. This is a distinct sub-project and is deferred to v2.
 
 ---
 
@@ -134,9 +154,8 @@ Opens when the user clicks "Tag Email" in the Outlook ribbon with an email selec
 When the user applies a tag to an email:
 
 1. `addMailCategory(name)` — applies the Outlook category to the email
-2. Read that tag's action rules from Roaming Settings
+2. Read that tag's rules from Roaming Settings
 3. Execute each configured action:
-   - **Move:** `moveEmailToFolder(folderId)`
    - **Also apply:** `addMailCategory(name)` for each additional tag
    - **Remove conflicting:** `removeMailCategory(name)` for each
 
@@ -148,16 +167,12 @@ When the user applies a tag to an email:
 {
   "tagRules": {
     "Finance": {
-      "moveToFolderId": "AAMkAGI2...",
       "alsoApply": ["Q3", "Accounting"],
-      "removeConflicting": ["Personal"],
-      "doNotAutoApply": false
+      "removeConflicting": ["Personal"]
     },
     "Urgent": {
-      "moveToFolderId": null,
       "alsoApply": [],
-      "removeConflicting": [],
-      "doNotAutoApply": false
+      "removeConflicting": []
     }
   }
 }
@@ -175,8 +190,6 @@ When the user applies a tag to an email:
 | `getAllCategories()` | All categories defined in the mailbox |
 | `createCategory(name, color)` | Create a new Outlook category |
 | `deleteCategory(name)` | Delete an Outlook category |
-| `getMailFolders()` | All folders in the mailbox (for move action) |
-| `moveEmailToFolder(folderId)` | Move selected email to a folder |
 | `getRoamingSettings()` | Read tag action rules |
 | `saveRoamingSettings(data)` | Write tag action rules |
 
@@ -184,10 +197,10 @@ When the user applies a tag to an email:
 
 ## Hosting & Deployment
 
-- **Two manifests:** `manifest.xml` (prod → GitHub Pages) and `manifest.dev.xml` (dev → localhost:3000)
-- **Dev:** `npm start` → HTTPS on `localhost:3000`; sideload `manifest.dev.xml` via Outlook Settings → Add-ins → Custom add-ins
+- **One manifest:** `manifest.xml` with `ASSET_URL` injected at build time
+- **Dev:** In Windows PowerShell — `npm start` → HTTPS on `localhost:3000`; sideload `manifest.xml` (pointing to localhost) via Outlook Settings → Add-ins → My add-ins → Custom add-ins → upload file
 - **Production:** `npm run build && npm run deploy` → pushes `/dist` to `gh-pages` branch → served at `https://beleebala.github.io/Outlook-tag/`
-- GitHub Pages provides HTTPS automatically (required by Office add-ins)
+- GitHub Pages provides HTTPS automatically (required by all Office add-ins)
 
 ---
 
@@ -197,18 +210,17 @@ When the user applies a tag to an email:
 |---|---|
 | No email selected | "Select an email to get started" message |
 | Office.js API error | Toast error + Retry button |
-| Move-to-folder: folder not found | Inline warning in Edit Tag view |
 | Category already applied | Silent no-op (Office.js handles idempotently) |
 
 ---
 
 ## Verification Steps
 
-1. `npm start` → sideload `manifest.dev.xml` in Outlook web
+1. In Windows PowerShell: `npm start` → sideload manifest in Outlook web (outlook.com or outlook.office.com)
 2. Select an email → click "Tag Email" → task pane opens with existing tags already displayed
 3. Apply a tag from the autocomplete → chip appears; verify tag visible in Outlook's category column
 4. Remove a chip → category removed from the email
 5. Open Tag Manager → create a new tag → verify it appears in the autocomplete
-6. Edit a tag → set "Move to folder" action → apply that tag → confirm email moved to the correct folder
-7. Edit a tag → set "Also apply" → apply tag → confirm second tag is applied automatically
-8. `npm run build && npm run deploy` → test at the production GitHub Pages URL in Outlook
+6. Edit a tag → set "Also apply" → apply that tag to an email → confirm second tag is applied automatically
+7. Edit a tag → set "Remove conflicting" → apply tag → confirm the conflicting tag is removed
+8. `npm run build && npm run deploy` → sideload the production manifest → test at the GitHub Pages URL in Outlook
