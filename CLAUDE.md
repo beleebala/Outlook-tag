@@ -4,12 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Outlook-tag** — a project for tagging/labeling emails in Microsoft Outlook. (Update this section as the project takes shape.)
+**Outlook-tag** is an Office Web Add-in for tagging/labeling emails in Microsoft Outlook using built-in Outlook categories. v1 is Office.js-only and does not use Microsoft Graph.
 
 ## Getting Started
 
-> Add build, run, and test commands here once the project is initialized.
+Use Windows PowerShell for Outlook add-in development.
+
+```powershell
+npm install
+$env:ASSET_URL='https://localhost:4000'; npm start
+npm test
+npm run typecheck
+$env:ASSET_URL='https://beleebala.github.io/Outlook-tag'; npm run build
+```
 
 ## Architecture
 
-> Add high-level architecture notes here once the codebase is established.
+- `manifest.xml` is the single add-in manifest. Webpack replaces `__ASSET_URL__` with the environment URL.
+- `src/shared/officeApi.ts` is the only place that should wrap Office.js callback APIs.
+- `src/shared/rules.ts` owns deterministic rule planning and should stay testable without Office.
+- `src/taskpane/components/` contains React views for tagging, managing categories, and editing tag rules.
+- Category rules are stored in Office.js Roaming Settings under the `tagRules` key.

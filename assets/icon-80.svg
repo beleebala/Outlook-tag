@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" role="img" aria-label="Outlook Tag icon">
+  <rect width="80" height="80" rx="16" fill="#0f6cbd"/>
+  <path d="M15 26.5A11.5 11.5 0 0 1 26.5 15h12c3.05 0 5.97 1.21 8.13 3.37l15.5 15.5a11.5 11.5 0 0 1 0 16.26l-12 12a11.5 11.5 0 0 1-16.26 0l-15.5-15.5A11.5 11.5 0 0 1 15 38.5v-12Z" fill="#fff"/>
+  <circle cx="28" cy="28" r="5" fill="#0f6cbd"/>
+</svg>

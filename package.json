@@ -1,0 +1,51 @@
+{
+  "name": "outlook-tag",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Outlook Web Add-in for applying and managing Outlook category tags.",
+  "scripts": {
+    "start": "webpack serve --mode development",
+    "build:dev": "webpack --mode development && npm run validate:dev",
+    "build": "webpack --mode production && npm run validate:prod",
+    "certs:generate": "node scripts/generateDevCerts.cjs",
+    "certs:install": "office-addin-dev-certs install",
+    "certs:verify": "office-addin-dev-certs verify",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "validate:dev": "node scripts/validateManifest.cjs dev",
+    "validate:prod": "node scripts/validateManifest.cjs prod",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.68.0",
+    "@fluentui/react-icons": "^2.0.305",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^15.0.7",
+    "@types/office-js": "^1.0.517",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^5.0.0",
+    "copy-webpack-plugin": "^12.0.2",
+    "css-loader": "^7.1.2",
+    "gh-pages": "^6.2.0",
+    "html-webpack-plugin": "^5.6.3",
+    "jsdom": "^25.0.1",
+    "office-addin-dev-certs": "^1.13.3",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.6.3",
+    "vite": "^7.0.0",
+    "vitest": "^3.0.0",
+    "webpack": "^5.96.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
