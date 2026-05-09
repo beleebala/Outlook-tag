@@ -12,9 +12,10 @@ export interface TagRulesStore {
   tagRules: Record<string, TagRule>;
 }
 
-export interface TagPreferences {
-  favoriteTags: string[];
-  recentTags: string[];
+export interface MailContext {
+  subject: string;
+  senderName: string;
+  senderEmail: string;
 }
 
 export interface RuleExecutionPlan {

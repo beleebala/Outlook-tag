@@ -1,9 +1,7 @@
 import { emptyRulesStore } from "./rules";
-import { Category, OfficeApiError, TagPreferences, TagRulesStore } from "./types";
-import { emptyTagPreferences } from "./tagPreferences";
+import { Category, MailContext, OfficeApiError, TagRulesStore } from "./types";
 
 const TAG_RULES_KEY = "tagRules";
-const TAG_PREFS_KEY = "tagPreferences";
 
 type AsyncResult<T> = Office.AsyncResult<T>;
 
@@ -110,10 +108,49 @@ export async function waitForOfficeReady(): Promise<void> {
   }
 }
 
+export async function onSelectedItemChanged(handler: () => void): Promise<() => Promise<void>> {
+  const office = getOffice();
+  const mailbox = office.context?.mailbox as
+    | {
+        addHandlerAsync?: (
+          eventType: Office.EventType,
+          handler: () => void,
+          callback: (result: AsyncResult<void>) => void
+        ) => void;
+        removeHandlerAsync?: (
+          eventType: Office.EventType,
+          options: { handler: () => void },
+          callback: (result: AsyncResult<void>) => void
+        ) => void;
+      }
+    | undefined;
+
+  if (!mailbox?.addHandlerAsync || !mailbox.removeHandlerAsync || !office.EventType?.ItemChanged) {
+    return async () => undefined;
+  }
+
+  await asPromise<void>((callback) => mailbox.addHandlerAsync?.(office.EventType.ItemChanged, handler, callback));
+
+  return async () => {
+    await asPromise<void>((callback) => mailbox.removeHandlerAsync?.(office.EventType.ItemChanged, { handler }, callback));
+  };
+}
+
 export async function getMailCategories(): Promise<Category[]> {
   const item = getMailboxItem();
   const categories = await asPromise<Office.CategoryDetails[]>((callback) => item.categories.getAsync(callback));
   return categories.map(toCategory);
+}
+
+export function getSelectedMailContext(): MailContext {
+  const item = getMailboxItem();
+  const from = item.from as Partial<Office.EmailAddressDetails> | undefined;
+
+  return {
+    subject: item.subject || "",
+    senderName: from?.displayName || "",
+    senderEmail: from?.emailAddress || ""
+  };
 }
 
 export async function addMailCategory(name: string): Promise<void> {
@@ -154,21 +191,5 @@ export function getRoamingSettings(): TagRulesStore {
 export async function saveRoamingSettings(data: TagRulesStore): Promise<void> {
   const settings = getOffice().context.roamingSettings;
   settings.set(TAG_RULES_KEY, data.tagRules);
-  await asPromise<void>((callback) => settings.saveAsync(callback));
-}
-
-export function getTagPreferences(): TagPreferences {
-  const rawPreferences = getOffice().context.roamingSettings.get(TAG_PREFS_KEY);
-
-  if (!rawPreferences || typeof rawPreferences !== "object") {
-    return emptyTagPreferences();
-  }
-
-  return rawPreferences as TagPreferences;
-}
-
-export async function saveTagPreferences(data: TagPreferences): Promise<void> {
-  const settings = getOffice().context.roamingSettings;
-  settings.set(TAG_PREFS_KEY, data);
   await asPromise<void>((callback) => settings.saveAsync(callback));
 }

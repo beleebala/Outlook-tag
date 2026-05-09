@@ -1,57 +1,45 @@
-import { Button, Tooltip } from "@fluentui/react-components";
-import { Add16Regular, Star16Filled, Star16Regular } from "@fluentui/react-icons";
+import { Button } from "@fluentui/react-components";
+import { Add16Regular } from "@fluentui/react-icons";
 import { getColorMeta } from "../categoryColors";
-import { Category, TagPreferences } from "../../shared/types";
+import { Category } from "../../shared/types";
 
 interface QuickTagsProps {
   appliedNames: string[];
   categories: Category[];
   disabled?: boolean;
-  preferences: TagPreferences;
+  suggestedCategories: Category[];
   onApply: (name: string) => void;
-  onToggleFavorite: (name: string) => void;
 }
 
-export function QuickTags({ appliedNames, categories, disabled, preferences, onApply, onToggleFavorite }: QuickTagsProps) {
-  const byName = new Map(categories.map((category) => [category.name, category]));
+export function QuickTags({
+  appliedNames,
+  categories,
+  disabled,
+  suggestedCategories,
+  onApply
+}: QuickTagsProps) {
   const applied = new Set(appliedNames);
-  const favorites = preferences.favoriteTags.map((name) => byName.get(name)).filter((category): category is Category => Boolean(category));
-  const recent = preferences.recentTags
-    .filter((name) => !preferences.favoriteTags.includes(name))
-    .map((name) => byName.get(name))
-    .filter((category): category is Category => Boolean(category));
-  const allPreview = categories.slice(0, 10);
+  const visibleSuggestions = suggestedCategories.filter((category) => !applied.has(category.name));
+  const suggestedNames = new Set(visibleSuggestions.map((category) => category.name));
+  const quickNames = new Set([...applied, ...suggestedNames]);
+  const allPreview = categories.filter((category) => !quickNames.has(category.name)).slice(0, 10);
 
   return (
     <section className="quickTags" aria-label="Quick tags">
       <QuickTagGroup
         applied={applied}
-        categories={favorites}
+        categories={visibleSuggestions}
         disabled={disabled}
-        emptyText="Star tags below to make favorites."
-        favoriteNames={preferences.favoriteTags}
-        title="Favorites"
+        emptyText="Suggestions appear when a tag matches the sender or subject."
+        title="Suggested"
         onApply={onApply}
-        onToggleFavorite={onToggleFavorite}
-      />
-      <QuickTagGroup
-        applied={applied}
-        categories={recent}
-        disabled={disabled}
-        emptyText="Recently used tags will appear here."
-        favoriteNames={preferences.favoriteTags}
-        title="Recent"
-        onApply={onApply}
-        onToggleFavorite={onToggleFavorite}
       />
       <QuickTagGroup
         applied={applied}
         categories={allPreview}
         disabled={disabled}
-        favoriteNames={preferences.favoriteTags}
         title="All Tags"
         onApply={onApply}
-        onToggleFavorite={onToggleFavorite}
       />
     </section>
   );
@@ -62,28 +50,28 @@ function QuickTagGroup({
   categories,
   disabled,
   emptyText,
-  favoriteNames,
   title,
-  onApply,
-  onToggleFavorite
+  onApply
 }: {
   applied: Set<string>;
   categories: Category[];
   disabled?: boolean;
   emptyText?: string;
-  favoriteNames: string[];
   title: string;
   onApply: (name: string) => void;
-  onToggleFavorite: (name: string) => void;
 }) {
   return (
     <div className="quickTagGroup">
-      <h2>{title}</h2>
+      <h2>
+        <span>{title}</span>
+        <span className="quickTagCount" aria-hidden="true">
+          {categories.length}
+        </span>
+      </h2>
       {categories.length ? (
         <div className="quickTagGrid">
           {categories.map((category) => {
             const color = getColorMeta(category.color);
-            const isFavorite = favoriteNames.includes(category.name);
             const isApplied = applied.has(category.name);
 
             return (
@@ -93,16 +81,6 @@ function QuickTagGroup({
                   <span>{category.name}</span>
                 </span>
                 <span className="quickTagActions">
-                  <Tooltip content={isFavorite ? `Remove ${category.name} from favorites` : `Add ${category.name} to favorites`} relationship="label">
-                    <Button
-                      aria-label={isFavorite ? `Remove ${category.name} from favorites` : `Add ${category.name} to favorites`}
-                      appearance="subtle"
-                      disabled={disabled}
-                      icon={isFavorite ? <Star16Filled /> : <Star16Regular />}
-                      size="small"
-                      onClick={() => onToggleFavorite(category.name)}
-                    />
-                  </Tooltip>
                   <Button
                     aria-label={isApplied ? `${category.name} is already applied` : `Apply ${category.name}`}
                     appearance="subtle"

@@ -35,7 +35,7 @@
 - **Approach:** Restrained. Brand color is reserved for primary action, focus, and selected state.
 - **Primary:** `#0F6CBD` - Microsoft/Outlook blue for primary actions, focus, and selected navigation.
 - **Primary hover:** `#115EA3`.
-- **Favorite accent:** `#C19C00` - favorite/starred tag state. Use sparingly and never as page decoration.
+- **Accent restraint:** Use category colors and Microsoft blue for priority. Avoid extra favorite/star accents in the task pane.
 - **Neutrals:**
   - Canvas: `#FAF9F8`
   - Surface: `#FFFFFF`
@@ -76,10 +76,9 @@
 ## Components
 
 - **Task header:** Sticky white surface, bottom border, compact title and one-line helper text.
-- **Quick tag groups:** White grouped panels with 8px radius, 10px padding, 13px section headings, and 32px rows.
-- **Favorite tags:** Star icon carries the favorite state. Gold is only for the star/favorite state.
-- **Recent tags:** Same row treatment as favorites, but never duplicate tags already shown in Favorites.
-- **All Tags:** Preview the first common tags in compact rows. Search remains the fallback for long category lists.
+- **Quick tag groups:** White grouped panels with 8px radius, 10px padding, 13px section headings, compact count labels, and 32px rows.
+- **Suggested tags:** First group. Shows local sender/subject matches only; no external AI or network calls.
+- **All Tags:** Preview the first available tags that are not suggested or already applied. Search remains the fallback for long category lists.
 - **Category swatches:** 12px circles with a subtle border. Swatches represent Outlook category color and should not be enlarged decoratively.
 - **Status bar:** Subtle gray surface at the bottom, 12px text, concise messages.
 - **Error states:** Use semantic background/border sparingly. Explain the recovery action in plain language.
@@ -99,7 +98,7 @@
 
 ## Deliberate Risks
 
-- Favorites use a small gold accent. This creates memory and priority without making the interface decorative.
+- Sender/subject suggestions can be wrong. Keep them clearly optional and easy to ignore.
 - Grouped quick-tag panels are more structured than default Fluent lists. This improves scanning, but it must stay compact.
 - The UI is intentionally low-copy. This helps expert daily use, but empty states must still explain the next action.
 
@@ -108,3 +107,4 @@
 | Date | Decision | Rationale |
 |------|----------|-----------|
 | 2026-05-09 | Created initial design system | Based on Outlook Tag product context, Microsoft 365 task-pane constraints, and approved HTML preview direction. |
+| 2026-05-10 | Removed Favorites and Recent quick-tag groups | The user chose a simpler task pane with Suggested and All Tags only. |

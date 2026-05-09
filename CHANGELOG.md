@@ -4,9 +4,18 @@ All notable changes to this project are documented here.
 
 ## 0.1.0 - 2026-05-09
 
-- Added quick tag groups for favorites, recent tags, and the first available mailbox categories.
-- Added favorite and recent tag persistence through Office Roaming Settings.
-- Added preference normalization tests for favorite/recent tag behavior.
+- Added suggested quick tags based on the selected email subject, sender name, and sender email.
+- Added automatic pane refresh when Outlook reports that the selected email changed.
+- Added refresh ordering protection so stale Outlook responses cannot overwrite newer selected-email state.
+- Avoided no-op Roaming Settings saves during selected-email refreshes.
+- Added component tests for suggested, all-tags, and applied quick tag states.
+- Added component tests for tag manager and tag rule editing behavior.
+- Added App-level tests for loading mocked Outlook data, applying a suggested tag, and opening Tag Manager.
+- Added compact counts to quick tag group headings.
+- Simplified quick tag groups to Suggested and All Tags.
+- De-duplicated quick tag groups so suggested and all-tag rows do not repeat the same tag.
+- Hid already-applied tags from quick tag groups so users only see actionable apply options.
+- Added quick tag groups for suggestions and the first available mailbox categories.
 - Added an approved design system for the Outlook task-pane UI.
 - Updated GitHub Pages deployment to current stable GitHub Actions and Node 24.
 - Updated direct npm dependencies to current stable versions.

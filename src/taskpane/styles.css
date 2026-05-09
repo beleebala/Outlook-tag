@@ -95,10 +95,24 @@ body {
 }
 
 .quickTagGroup h2 {
+  align-items: center;
+  display: flex;
   font-size: 13px;
   font-weight: 600;
+  justify-content: space-between;
   line-height: 1.3;
   margin: 0;
+}
+
+.quickTagGroup:first-child {
+  border-color: #c8c6c4;
+}
+
+.quickTagCount {
+  color: #616161;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 400;
 }
 
 .quickTagGrid {

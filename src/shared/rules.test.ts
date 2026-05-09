@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { planRuleExecution, pruneRulesForExistingCategories } from "./rules";
+import { areRuleStoresEqual, planRuleExecution, pruneRulesForExistingCategories } from "./rules";
 
 describe("planRuleExecution", () => {
   it("deduplicates operations and does not cascade or remove the trigger tag", () => {
@@ -24,6 +24,41 @@ describe("planRuleExecution", () => {
       add: ["Accounting"],
       remove: ["Personal"]
     });
+  });
+});
+
+describe("areRuleStoresEqual", () => {
+  it("treats normalized equivalent rule stores as equal", () => {
+    expect(
+      areRuleStoresEqual(
+        {
+          tagRules: {
+            Finance: {
+              alsoApply: ["Q3", "Accounting", "Q3"],
+              removeConflicting: ["Personal"]
+            }
+          }
+        },
+        {
+          tagRules: {
+            Finance: {
+              alsoApply: ["Accounting", "Q3"],
+              removeConflicting: ["Personal", "Personal"]
+            }
+          }
+        }
+      )
+    ).toBe(true);
+  });
+
+  it("detects different trigger or action rules", () => {
+    expect(areRuleStoresEqual({ tagRules: { Finance: { alsoApply: ["Q3"], removeConflicting: [] } } }, { tagRules: {} })).toBe(false);
+    expect(
+      areRuleStoresEqual(
+        { tagRules: { Finance: { alsoApply: ["Q3"], removeConflicting: [] } } },
+        { tagRules: { Finance: { alsoApply: [], removeConflicting: ["Q3"] } } }
+      )
+    ).toBe(false);
   });
 });
 

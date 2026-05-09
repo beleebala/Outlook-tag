@@ -15,9 +15,19 @@
   - Tag Rules
 - Isolated Office.js APIs in `src/shared/officeApi.ts`.
 - Added rule planning and application logic.
-- Added quick tag buttons with favorite and recent tag persistence.
+- Added quick tag buttons for suggested tags and available mailbox categories.
+- Added sender/subject-based suggested quick tags.
+- Added selected-item change handling so the pane refreshes when Outlook exposes `ItemChanged`.
+- Added refresh ordering protection so stale Outlook responses cannot overwrite newer selected-email state.
+- Avoided no-op Roaming Settings saves during selected-email refreshes.
+- Added component tests for suggested, all-tags, and applied quick tag states.
+- Added component tests for tag manager and tag rule editing behavior.
+- Added App-level tests for loading mocked Outlook data, applying a suggested tag, and opening Tag Manager.
+- Added compact counts to quick tag group headings.
+- Simplified quick tag groups to Suggested and All Tags.
+- De-duplicated quick tag groups so suggested and all-tag rows do not repeat the same tag.
+- Hid already-applied tags from quick tag groups so users only see actionable apply options.
 - Added first-pass tests for deterministic rules and manifest validation.
-- Added preference tests for favorite and recent tag normalization.
 - Added `DESIGN.md` as the source of truth for task-pane UI decisions.
 
 ## Next Engineering Tasks
@@ -31,12 +41,10 @@
    - `npm run typecheck`
    - `$env:ASSET_URL='https://localhost:4000'; npm start`
 2. Verify the exact Office.js category API signatures against the generated TypeScript types after install.
-3. Add selected-item change handling with `Office.EventType.ItemChanged` where supported; until then, Refresh is exposed before mutations.
-4. Add sender/subject-based suggested tags after quick tags are manually verified.
-5. Add component tests for the create/delete/rules/favorites UI states after the first build passes.
-6. Replace SVG placeholder icons with PNG assets if any Outlook client rejects SVG icon URLs.
-7. Manually verify the startup error inside Outlook versus a direct browser load.
-8. Verify Outlook WebView trusts the generated Office Add-in dev certificate on the development machine.
+3. Add manual QA screenshots for the hosted task pane after the next deploy.
+4. Replace SVG placeholder icons with PNG assets if any Outlook client rejects SVG icon URLs.
+5. Manually verify the startup error inside Outlook versus a direct browser load.
+6. Verify Outlook WebView trusts the generated Office Add-in dev certificate on the development machine.
 
 ## GitHub Pages Path
 

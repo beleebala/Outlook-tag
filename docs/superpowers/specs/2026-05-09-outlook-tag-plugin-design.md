@@ -88,6 +88,8 @@ New Outlook
     └── Task Pane  (React web app, served from GitHub Pages)
         ├── View A: Tag an Email
         │   ├── Reads existing tags on selected email (on open)
+        │   ├── Shows Suggested quick tags from local sender/subject matching
+        │   ├── Shows All Tags quick buttons for available categories
         │   ├── Displays tags as removable chips
         │   ├── Autocomplete input to apply existing tags
         │   └── [Manage Tags] → View B
@@ -153,10 +155,14 @@ Opens when the user clicks "Tag Email" in the Outlook ribbon with an email selec
   - New tags must be created via Tag Manager (View B)
   - Enter applies the highlighted match, clears the input, keeps focus in the input, and updates chips immediately.
   - Escape clears the current query; a second Escape returns focus to the task pane shell.
+- Quick tags:
+  - Suggested uses local sender/subject matching against existing category names.
+  - All Tags previews available categories that are not already applied or shown in Suggested.
+  - Favorites and Recent are not part of v1.
 - Chip × → removes that category from the email
 - `[Manage Tags]` → navigate to View B
 - Error state: "Select an email to get started" if no email is selected
-- If the task pane stays open while the selected email changes, reload the selected item's categories before any mutation. Prefer listening for item changes; if that is unreliable in a client, require manual refresh and disable mutations while stale.
+- If the task pane stays open while the selected email changes, reload the selected item's categories before any mutation. Prefer listening for item changes; ignore stale refresh results that finish after a newer selected-item refresh.
 - When action rules add or remove tags, show a compact inline status such as "Applied Finance, added Q3, removed Personal."
 
 ### View B — Tag Manager
@@ -211,7 +217,7 @@ Color is also locked after creation in v1 because Office.js does not provide a d
 Other SimplyTag-inspired capabilities to evaluate after v1:
 
 - **QuickTag keyboard flow:** fast type-ahead tagging for users with many categories.
-- **One-click suggestions:** suggested categories based on prior choices, sender, recipients, subject, or message context.
+- **Advanced suggestions:** suggested categories based on historical choices, recipients, body content, or message context beyond the v1 local sender/subject matcher.
 - **Auto-tag incoming mail:** automatically apply categories to new messages based on learned/manual rules.
 - **Sent-message tagging:** prompt to tag sent mail and optionally copy tags from the original message on reply/forward.
 - **Tag actions:** move-to-folder, mark-as-read, also-apply tags, and remove-conflicting tags.
@@ -270,7 +276,7 @@ Roaming Settings constraints:
 - The storage limit is 32KB per add-in.
 - Values are loaded when the add-in initializes; cross-client changes may require closing/reopening the task pane, refreshing the browser, or restarting the Outlook client.
 - Do not store secrets or access tokens in Roaming Settings.
-- Rules are keyed by category display name in v1 because Outlook categories do not expose a stable custom ID. On category list load, prune or flag orphaned rules whose category names no longer exist in the master list.
+- Rules are keyed by category display name in v1 because Outlook categories do not expose a stable custom ID. On category list load, prune orphaned rules whose category names no longer exist in the master list, and only save Roaming Settings if pruning changed the stored rules.
 
 ---
 
@@ -350,7 +356,7 @@ The add-in runs with mailbox read/write permission, so hosted JavaScript integri
 8. Delete a tag → confirm warning appears → verify the category is removed from the master list
 9. Close and reopen the task pane → verify saved rules reload from Roaming Settings
 10. `$env:ASSET_URL='https://beleebala.github.io/Outlook-tag'; npm run build; npm run deploy` → sideload the production manifest → test at the GitHub Pages URL in Outlook
-11. Change the selected email while the task pane is open → verify categories reload or mutations are blocked until refresh
+11. Change the selected email while the task pane is open → verify categories reload automatically and stale older refreshes do not overwrite the latest selected email
 12. Configure conflicting also-apply/remove-conflicting rules → verify deterministic precedence and inline status text
 13. Run the compatibility spike across Outlook.com, Microsoft 365 Outlook on the web, New Outlook for Windows, classic Outlook, and Outlook for Mac before marking platforms supported
 

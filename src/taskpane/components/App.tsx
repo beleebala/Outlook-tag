@@ -1,22 +1,22 @@
 import { Button, Spinner } from "@fluentui/react-components";
 import { ArrowClockwise16Regular, Settings16Regular } from "@fluentui/react-icons";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createCategory,
   deleteCategory,
   getAllCategories,
   getMailCategories,
+  getSelectedMailContext,
   getRoamingSettings,
-  getTagPreferences,
+  onSelectedItemChanged,
   removeMailCategory,
   saveRoamingSettings,
-  saveTagPreferences,
   waitForOfficeReady
 } from "../../shared/officeApi";
-import { pruneRulesForExistingCategories, normalizeRule } from "../../shared/rules";
+import { areRuleStoresEqual, pruneRulesForExistingCategories, normalizeRule } from "../../shared/rules";
 import { applyTagWithRules } from "../../shared/tagActions";
-import { normalizeTagPreferences, recordRecentTag, toggleFavoriteTag } from "../../shared/tagPreferences";
-import { Category, OfficeApiError, TagPreferences, TagRule, TagRulesStore } from "../../shared/types";
+import { suggestTagsForMail } from "../../shared/tagSuggestions";
+import { Category, OfficeApiError, TagRule, TagRulesStore } from "../../shared/types";
 import { EditTag } from "./EditTag";
 import { QuickTags } from "./QuickTags";
 import { TagInput } from "./TagInput";
@@ -31,16 +31,24 @@ export function App() {
   const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [mailCategories, setMailCategories] = useState<Category[]>([]);
   const [rulesStore, setRulesStore] = useState<TagRulesStore>({ tagRules: {} });
-  const [tagPreferences, setTagPreferences] = useState<TagPreferences>({ favoriteTags: [], recentTags: [] });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [liveMessage, setLiveMessage] = useState("");
+  const dataRequestId = useRef(0);
 
   const appliedNames = useMemo(() => mailCategories.map((category) => category.name), [mailCategories]);
+  const suggestedCategories = useMemo(() => {
+    try {
+      return suggestTagsForMail(allCategories, getSelectedMailContext(), appliedNames);
+    } catch {
+      return [];
+    }
+  }, [allCategories, appliedNames]);
 
   const refresh = useCallback(async () => {
+    const requestId = ++dataRequestId.current;
     setError("");
     setStatus("");
     setLoading(true);
@@ -48,21 +56,25 @@ export function App() {
     try {
       await waitForOfficeReady();
       const [masterCategories, selectedItemCategories] = await Promise.all([getAllCategories(), getMailCategories()]);
-      const currentRules = pruneRulesForExistingCategories(getRoamingSettings(), masterCategories.map((category) => category.name));
-      const currentPreferences = normalizeTagPreferences(
-        getTagPreferences(),
-        masterCategories.map((category) => category.name)
-      );
+      const storedRules = getRoamingSettings();
+      const currentRules = pruneRulesForExistingCategories(storedRules, masterCategories.map((category) => category.name));
+      if (requestId !== dataRequestId.current) {
+        return;
+      }
       setAllCategories(masterCategories);
       setMailCategories(selectedItemCategories);
       setRulesStore(currentRules);
-      setTagPreferences(currentPreferences);
-      await saveRoamingSettings(currentRules);
-      await saveTagPreferences(currentPreferences);
+      if (!areRuleStoresEqual(storedRules, currentRules)) {
+        await saveRoamingSettings(currentRules);
+      }
     } catch (caught) {
-      setError(readableError(caught));
+      if (requestId === dataRequestId.current) {
+        setError(readableError(caught));
+      }
     } finally {
-      setLoading(false);
+      if (requestId === dataRequestId.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -70,14 +82,37 @@ export function App() {
     refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    let disposed = false;
+    let unsubscribe: (() => Promise<void>) | undefined;
+
+    onSelectedItemChanged(() => {
+      if (!disposed) {
+        refresh();
+      }
+    })
+      .then((cleanup) => {
+        unsubscribe = cleanup;
+      })
+      .catch(() => undefined);
+
+    return () => {
+      disposed = true;
+      void unsubscribe?.();
+    };
+  }, [refresh]);
+
   async function runMutation(action: () => Promise<void>) {
     setBusy(true);
     setError("");
     try {
       await action();
+      const requestId = ++dataRequestId.current;
       const [masterCategories, selectedItemCategories] = await Promise.all([getAllCategories(), getMailCategories()]);
-      setAllCategories(masterCategories);
-      setMailCategories(selectedItemCategories);
+      if (requestId === dataRequestId.current) {
+        setAllCategories(masterCategories);
+        setMailCategories(selectedItemCategories);
+      }
     } catch (caught) {
       setError(readableError(caught));
     } finally {
@@ -88,9 +123,6 @@ export function App() {
   function applyTag(name: string) {
     runMutation(async () => {
       const result = await applyTagWithRules(name, rulesStore);
-      const nextPreferences = recordRecentTag(tagPreferences, name, allCategories);
-      setTagPreferences(nextPreferences);
-      await saveTagPreferences(nextPreferences);
       const parts = [`Applied ${result.applied}`];
       if (result.add.length) {
         parts.push(`added ${result.add.join(", ")}`);
@@ -99,16 +131,6 @@ export function App() {
         parts.push(`removed ${result.remove.join(", ")}`);
       }
       setStatus(`${parts.join(", ")}.`);
-    });
-  }
-
-  function toggleFavorite(name: string) {
-    runMutation(async () => {
-      const nextPreferences = toggleFavoriteTag(tagPreferences, name, allCategories);
-      setTagPreferences(nextPreferences);
-      await saveTagPreferences(nextPreferences);
-      const isFavorite = nextPreferences.favoriteTags.includes(name);
-      setStatus(isFavorite ? `Added ${name} to favorites.` : `Removed ${name} from favorites.`);
     });
   }
 
@@ -131,13 +153,9 @@ export function App() {
     await runMutation(async () => {
       await deleteCategory(name);
       const nextRules = { tagRules: { ...rulesStore.tagRules } };
-      const remainingCategoryNames = allCategories.filter((category) => category.name !== name).map((category) => category.name);
-      const nextPreferences = normalizeTagPreferences(tagPreferences, remainingCategoryNames);
       delete nextRules.tagRules[name];
       setRulesStore(nextRules);
-      setTagPreferences(nextPreferences);
       await saveRoamingSettings(nextRules);
-      await saveTagPreferences(nextPreferences);
       setStatus(`Deleted ${name}.`);
     });
   }
@@ -231,9 +249,8 @@ export function App() {
           appliedNames={appliedNames}
           categories={allCategories}
           disabled={busy || Boolean(error)}
-          preferences={tagPreferences}
+          suggestedCategories={suggestedCategories}
           onApply={applyTag}
-          onToggleFavorite={toggleFavorite}
         />
         <TagInput allCategories={allCategories} appliedNames={appliedNames} disabled={busy || Boolean(error)} onApply={applyTag} />
         <TagList categories={mailCategories} disabled={busy || Boolean(error)} onRemove={removeTag} />

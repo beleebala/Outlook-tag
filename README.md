@@ -5,14 +5,16 @@ Outlook Tag is an Office Web Add-in for applying and managing Outlook category t
 ## Current Scope
 
 - Open the tag panel from an Outlook ribbon button.
-- Apply favorite and recently used tags from quick tag buttons.
+- Apply suggested tags from quick tag buttons based on the selected email subject and sender.
+- Apply available mailbox categories from the All Tags quick group.
 - Apply existing Outlook categories to the selected email.
 - Remove categories from the selected email.
 - Create and delete master categories.
 - Configure per-tag rules in Roaming Settings:
   - also apply other tags
   - remove conflicting tags
-- Store favorites, recent tags, and rules in Office Roaming Settings.
+- Store tag rules in Office Roaming Settings.
+- Refresh automatically when Outlook reports that the selected email changed.
 - Build one manifest for local development and GitHub Pages deployment by injecting `ASSET_URL`.
 
 ## Requirements
@@ -126,6 +128,7 @@ DESIGN.md                    task-pane UI design system
 manifest.xml
 src/shared/officeApi.ts      Office.js promise wrappers only
 src/shared/rules.ts          deterministic tag rule planning
+src/shared/tagSuggestions.ts local sender/subject suggestion scoring
 src/shared/tagActions.ts     apply selected tag plus v1 rule actions
 src/taskpane/components/     React task pane views
 ```
@@ -137,12 +140,12 @@ Presentation components should not call Office.js directly. Add Office integrati
 1. Deploy to GitHub Pages or run `npm run build` with the production `ASSET_URL`.
 2. Sideload the generated production manifest in Outlook.
 3. Select an email and choose **Open Tag Panel** from the Outlook ribbon.
-4. Star a tag and confirm it appears in Favorites.
-5. Apply a tag from Favorites or All Tags and confirm it appears on the message.
-6. Apply another tag and confirm it appears in Recent.
+4. Confirm Suggested shows matching tags when the subject or sender matches an existing category.
+5. Apply a tag from Suggested or All Tags and confirm it appears on the message.
+6. Confirm already-applied tags disappear from the quick apply groups.
 7. Remove a tag chip and confirm it is removed from the message.
 8. Create a tag in Tag Manager and confirm it appears in autocomplete and All Tags.
 9. Configure also-apply and remove-conflicting rules, then apply the trigger tag.
 10. Delete a tag and verify the warning is shown before deletion.
-11. Close and reopen the task pane and verify favorites, recent tags, and rules reload.
-12. Change selected email while the pane is open and use Refresh before mutating tags.
+11. Close and reopen the task pane and verify saved rules reload from Roaming Settings.
+12. Change selected email while the pane is open and confirm the task pane refreshes to the latest selected email.

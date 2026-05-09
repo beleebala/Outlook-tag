@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { waitForOfficeReady } from "./officeApi";
+import { getSelectedMailContext, onSelectedItemChanged, waitForOfficeReady } from "./officeApi";
 import { OfficeApiError } from "./types";
 
 describe("waitForOfficeReady", () => {
@@ -47,5 +47,64 @@ describe("waitForOfficeReady", () => {
     });
 
     await expect(waitForOfficeReady()).resolves.toBeUndefined();
+  });
+
+  it("reads selected message context for local suggestions", () => {
+    vi.stubGlobal("Office", {
+      context: {
+        mailbox: {
+          item: {
+            subject: "Project Apollo budget review",
+            from: {
+              displayName: "Contoso Finance",
+              emailAddress: "finance@contoso.com"
+            }
+          }
+        }
+      }
+    });
+
+    expect(getSelectedMailContext()).toEqual({
+      subject: "Project Apollo budget review",
+      senderName: "Contoso Finance",
+      senderEmail: "finance@contoso.com"
+    });
+  });
+
+  it("subscribes and unsubscribes from selected item changes when supported", async () => {
+    const addHandlerAsync = vi.fn((eventType, handler, callback) => callback({ status: "succeeded" }));
+    const removeHandlerAsync = vi.fn((eventType, options, callback) => callback({ status: "succeeded" }));
+    const handler = vi.fn();
+
+    vi.stubGlobal("Office", {
+      AsyncResultStatus: {
+        Succeeded: "succeeded"
+      },
+      EventType: {
+        ItemChanged: "itemChanged"
+      },
+      context: {
+        mailbox: {
+          addHandlerAsync,
+          removeHandlerAsync
+        }
+      }
+    });
+
+    const unsubscribe = await onSelectedItemChanged(handler);
+    await unsubscribe();
+
+    expect(addHandlerAsync).toHaveBeenCalledWith("itemChanged", handler, expect.any(Function));
+    expect(removeHandlerAsync).toHaveBeenCalledWith("itemChanged", { handler }, expect.any(Function));
+  });
+
+  it("uses a no-op item change unsubscribe when the event API is missing", async () => {
+    vi.stubGlobal("Office", {
+      context: {
+        mailbox: {}
+      }
+    });
+
+    await expect(onSelectedItemChanged(vi.fn())).resolves.toEqual(expect.any(Function));
   });
 });
