@@ -100,7 +100,7 @@ npm run build
 Then sideload:
 
 ```text
-C:\Users\pkhle\Projects\Outlook-tag\dist\manifest.xml
+dist\manifest.xml
 ```
 
 In GitHub repository settings, set **Pages > Build and deployment > Source** to **GitHub Actions**.

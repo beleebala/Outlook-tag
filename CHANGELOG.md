@@ -11,6 +11,7 @@ All notable changes to this project are documented here.
 - Switched the HTTPS dev server to Office Add-in trusted development certificates for Outlook WebView compatibility.
 - Added a certificate generation script that does not mutate the Windows trust store.
 - Added a GitHub Actions workflow for GitHub Pages hosting to avoid local HTTPS certificate blockers.
+- Removed local machine path disclosures from public-facing docs before repository publication.
 - Added deterministic v1 rule execution for also-apply and remove-conflicting actions.
 - Added manifest URL validation for local development and GitHub Pages production builds.
 - Added initial unit tests for rule planning and manifest guardrails.

@@ -1,5 +1,3 @@
-<!-- /autoplan restore point: C:\Users\pkhle\Projects\Outlook-tag\tmp\main-autoplan-restore-20260509-140227.md -->
-
 # Outlook Tag Add-in — Design Spec
 
 **Date:** 2026-05-09
